@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>For My Lablab ❤️</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  background:linear-gradient(to bottom,#5a0000,#b30000,#ffb3b3);
+  font-family:'Poppins',sans-serif;
+  color:#fff;
+  text-align:center;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* 🌟 GLOBAL GLOW */
+h1,h2,p,img,.modal-content{
+  text-shadow:0 0 12px rgba(255,200,200,.6);
+}
+
+/* Titles */
+h1{
+  font-family:'Great Vibes',cursive;
+  font-size:clamp(2.4rem,6vw,3.5rem);
+  margin:25px 0;
+}
+
+/* ❤️ Heart Gallery */
+.heart-gallery{
+  position:relative;
+  width:min(360px,90vw);
+  height:min(320px,80vw);
+  margin:30px auto;
+}
+
+.heart-gallery img{
+  position:absolute;
+  width:30%;
+  aspect-ratio:1/1;
+  object-fit:cover;
+  border-radius:20px;
+  cursor:pointer;
+  transition:.3s;
+  box-shadow:0 0 25px rgba(255,150,150,.7);
+}
+
+.heart-gallery img:active{transform:scale(1.08)}
+
+/* Heart positions */
+.pos1{top:0;left:20%}
+.pos2{top:0;right:20%}
+.pos3{top:25%;left:0}
+.pos4{top:25%;right:0}
+.pos5{top:50%;left:20%}
+.pos6{top:50%;right:20%}
+.pos7{top:75%;left:35%}
+
+/* 🌹 Falling flowers */
+.flower{
+  position:fixed;
+  top:-10px;
+  font-size:22px;
+  pointer-events:none;
+  animation:fall linear infinite;
+  z-index:1;
+}
+
+@keyframes fall{
+  0%{transform:translateY(-10px) rotate(0deg);opacity:1}
+  100%{transform:translateY(110vh) rotate(360deg);opacity:0}
+}
+
+/* 💗 Floating hearts */
+.heart{
+  position:fixed;
+  bottom:-20px;
+  font-size:18px;
+  color:#ff8fa3;
+  animation:float 6s linear infinite;
+  opacity:.7;
+  pointer-events:none;
+}
+
+@keyframes float{
+  0%{transform:translateY(0) scale(.8);opacity:.7}
+  100%{transform:translateY(-110vh) scale(1.2);opacity:0}
+}
+
+/* Modal */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.85);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:10;
+  padding:15px;
+}
+
+.modal-content{
+  background:#fff;
+  color:#8b0000;
+  padding:20px;
+  border-radius:22px;
+  max-width:520px;
+  width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+  animation:pop .4s ease;
+  box-shadow:0 0 40px rgba(255,150,150,.9);
+}
+
+@keyframes pop{
+  from{transform:scale(.7);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+
+.modal-content img{
+  width:100%;
+  border-radius:18px;
+  margin-bottom:15px;
+  box-shadow:0 0 25px rgba(255,120,120,.8);
+}
+
+/* Admin */
+.admin{
+  display:none;
+  background:#fff;
+  color:#8b0000;
+  max-width:500px;
+  margin:20px auto;
+  padding:20px;
+  border-radius:15px;
+}
+
+.admin input,.admin textarea{
+  width:100%;
+  padding:10px;
+  margin:6px 0;
+}
+
+.admin button{
+  background:#8b0000;
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+/* Delete Button */
+.delete-btn{
+  margin-top:15px;
+  background:#b00000;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Happy Valentine’s Day ❤️</h1>
+<p>Tap the memories 🌹</p>
+
+<div class="heart-gallery" id="gallery"></div>
+
+<h1>You Can Do This ❤️</h1>
+
+<!-- Modal -->
+<div class="modal" id="modal" onclick="closeModal()">
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <img id="modalImg">
+    <h2 id="modalTitle"></h2>
+    <p id="modalText"></p>
+    <button id="deleteBtn" class="delete-btn" onclick="deleteMemory()">Delete</button>
+  </div>
+</div>
+
+<audio id="musicPlayer"></audio>
+
+<!-- Admin Panel -->
+<div class="admin" id="adminPanel">
+  <h3>Admin Panel</h3>
+  <input type="file" id="imageInput" accept="image/*">
+  <input type="file" id="musicInput" accept="audio/*">
+  <input type="text" id="titleInput" placeholder="Memory title">
+  <textarea id="textInput" placeholder="Letter / memory"></textarea>
+  <button onclick="addMemory()">Add Memory</button>
+</div>
+
+<script>
+const gallery=document.getElementById("gallery");
+const modal=document.getElementById("modal");
+const modalImg=document.getElementById("modalImg");
+const modalTitle=document.getElementById("modalTitle");
+const modalText=document.getElementById("modalText");
+const musicPlayer=document.getElementById("musicPlayer");
+const adminPanel=document.getElementById("adminPanel");
+const deleteBtn=document.getElementById("deleteBtn");
+
+let memories=JSON.parse(localStorage.getItem("memories"))||[];
+let adminMode=false;
+let currentIndex=null;
+
+const positions=["pos1","pos2","pos3","pos4","pos5","pos6","pos7"];
+
+function render(){
+  gallery.innerHTML="";
+  memories.slice(0,7).forEach((m,i)=>{
+    const img=document.createElement("img");
+    img.src=m.img;
+    img.className=positions[i];
+    img.onclick=()=>openModal(i);
+    gallery.appendChild(img);
+  });
+}
+render();
+
+function openModal(index){
+  const m=memories[index];
+  currentIndex=index;
+  modalImg.src=m.img;
+  modalTitle.innerText=m.title;
+  modalText.innerText=m.text;
+  modal.style.display="flex";
+  deleteBtn.style.display=adminMode?"block":"none";
+  if(m.music){ musicPlayer.src=m.music; musicPlayer.play(); }
+}
+
+function closeModal(){
+  modal.style.display="none";
+  musicPlayer.pause();
+  musicPlayer.currentTime=0;
+}
+
+function deleteMemory(){
+  if(!confirm("Delete this memory?"))return;
+  memories.splice(currentIndex,1);
+  localStorage.setItem("memories",JSON.stringify(memories));
+  closeModal(); render();
+}
+
+function addMemory(){
+  const img=imageInput.files[0];
+  if(!img)return alert("Add an image");
+  const imgReader=new FileReader();
+  const musicFile=musicInput.files[0];
+
+  imgReader.onload=()=>{
+    if(musicFile){
+      const musicReader=new FileReader();
+      musicReader.onload=()=>saveMemory(imgReader.result,musicReader.result);
+      musicReader.readAsDataURL(musicFile);
+    }else saveMemory(imgReader.result,null);
+  };
+  imgReader.readAsDataURL(img);
+}
+
+function saveMemory(img,music){
+  memories.push({img,music,title:titleInput.value,text:textInput.value});
+  localStorage.setItem("memories",JSON.stringify(memories));
+  render();
+  imageInput.value=musicInput.value=titleInput.value=textInput.value="";
+}
+
+/* Admin access */
+document.addEventListener("keydown",e=>{
+  if(e.key.toLowerCase()==="a"){
+    const pass=prompt("Admin password:");
+    if(pass==="admin123"){
+      adminMode=true;
+      adminPanel.style.display="block";
+      alert("Admin mode enabled");
+    }
+  }
+});
+
+/* 🌹 Falling flowers generator */
+setInterval(()=>{
+  const f=document.createElement("div");
+  f.className="flower";
+  f.innerText=Math.random()>.5?"🌹":"🌸";
+  f.style.left=Math.random()*100+"vw";
+  f.style.animationDuration=4+Math.random()*4+"s";
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),8000);
+},400);
+
+/* 💗 Floating hearts */
+setInterval(()=>{
+  const h=document.createElement("div");
+  h.className="heart";
+  h.innerText="💗";
+  h.style.left=Math.random()*100+"vw";
+  h.style.animationDuration=4+Math.random()*4+"s";
+  document.body.appendChild(h);
+  setTimeout(()=>h.remove(),8000);
+},700);
+</script>
+
+</body>
+</html>
